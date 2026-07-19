@@ -1,0 +1,854 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>CHKT - A Simple Dated ToDo List</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" sizes="192x192" href="chkt-logo-small.png">
+<link rel="apple-touch-icon" href="chkt-logo-small.png">
+<meta name="theme-color" content="#2196F3">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="CHKT">
+
+<style>
+:root {
+    --primary: #2196F3;
+    --primary-hover: #1976D2;
+    --background: #f5f5f5;
+    --container: white;
+    --text: #333;
+    --border: #ccc;
+    --shadow: 0 2px 4px rgba(0,0,0,0.1);
+    --transition: 0.2s ease;
+    --success-status-bg: rgba(37, 99, 235, 0.6);
+    --danger-status-bg: rgba(220, 38, 38, 0.6);
+    --overdue: #dc2626;
+    --today: #ea580c;
+    --soon: #FBC02D;
+    --later: #6b7280;
+}
+
+[data-theme="dark"] {
+    --background: #1a1a1a;
+    --container: #2d2d2d;
+    --text: white;
+    --border: #404040;
+    --shadow: 0 2px 4px rgba(0,0,0,0.2);
+    --success-status-bg: rgba(96, 165, 250, 0.5);
+    --danger-status-bg: rgba(220, 38, 38, 0.5);
+    --later: #9ca3af;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background-color: var(--background);
+    color: var(--text);
+    line-height: 1.6;
+    transition: background-color var(--transition), color var(--transition);
+}
+
+.app { max-width: 600px; margin: 0 auto; padding: 2rem 1rem; text-align: center; }
+
+header {
+    position: relative;
+    text-align: center;
+    margin-bottom: 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.app-icon { width: 64px; height: 64px; border-radius: 16px; display: block; margin: 0 auto; box-shadow: var(--shadow); }
+.tagline { font-size: 0.85rem; font-weight: 400; opacity: 0.6; margin-bottom: 0.5rem; }
+
+.app-footer {
+    border-top: 1px solid var(--border);
+    margin-top: 1.5rem;
+    padding-top: 0.75rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    font-size: 0.8rem;
+    opacity: 0.7;
+    text-align: center;
+}
+
+.footer-tagline-row {
+    display: flex;
+    align-items: baseline;
+    justify-content: center;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+    text-align: center;
+}
+
+.footer-links { display: flex; align-items: center; justify-content: center; gap: 0.4rem; flex-wrap: wrap; font-size: 1.2rem; }
+
+.footer-links a,
+.footer-link-btn {
+    color: var(--text);
+    text-decoration: none;
+    opacity: 0.85;
+    background: none;
+    border: none;
+    padding: 0;
+    font: inherit;
+    cursor: pointer;
+}
+
+.footer-links a:hover,
+.footer-link-btn:hover { opacity: 1; text-decoration: underline; background: none; }
+
+.footer-sep { opacity: 0.5; }
+
+.footer-repo-link {
+    color: var(--text);
+    text-decoration: none;
+    opacity: 0.85;
+}
+
+.footer-repo-link:hover { opacity: 1; text-decoration: underline; }
+
+button {
+    background: var(--primary);
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color var(--transition);
+    font-size: 1rem;
+}
+
+button:hover { background: var(--primary-hover); }
+
+.todo-form {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 2rem;
+    justify-content: center;
+}
+
+input {
+    padding: 0.75rem;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--container);
+    color: var(--text);
+    transition: border-color var(--transition);
+    font-size: 1rem;
+    font-family: inherit;
+}
+
+input:focus { outline: none; border-color: var(--primary); }
+
+#todoInput { flex: 1; min-width: 180px; max-width: 400px; }
+
+#todoDate { flex: none; width: 165px; }
+
+.button-group { display: flex; gap: 0.5rem; align-items: center; }
+
+.clear-btn {
+    background: transparent;
+    padding: 0.5rem;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #ff4444;
+}
+
+.clear-btn svg { stroke: #ff4444; stroke-width: 2; fill: none; }
+.clear-btn:hover { background: rgba(255,68,68,0.1); }
+
+.todo-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    align-items: center;
+    width: 100%;
+}
+
+.todo-item {
+    display: grid;
+    grid-template-columns: 30px 1fr auto;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1rem;
+    background: var(--container);
+    border-radius: 8px;
+    box-shadow: var(--shadow);
+    transition: transform var(--transition), box-shadow var(--transition);
+    width: 100%;
+    max-width: 500px;
+    cursor: default;
+    position: relative;
+    border-left: 4px solid var(--border);
+}
+
+.todo-item.urgency-overdue { border-left-color: var(--overdue); }
+.todo-item.urgency-today { border-left-color: var(--today); }
+.todo-item.urgency-soon { border-left-color: var(--soon); }
+.todo-item.urgency-later { border-left-color: var(--later); }
+
+.todo-item:not(.completed):hover { transform: translateY(-2px); }
+
+.todo-item.completed { border-left-color: var(--border); }
+.todo-item.completed .todo-text { text-decoration: line-through; opacity: 0.7; }
+
+.checkbox-wrapper {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    padding: 0.5rem;
+    margin: -0.5rem;
+}
+
+.todo-content { min-width: 0; text-align: left; display: flex; flex-direction: column; gap: 0.3rem; }
+
+.todo-text {
+    overflow-wrap: break-word;
+    word-break: break-word;
+    padding: 0.1rem 0.25rem;
+}
+
+.date-badge {
+    display: inline-flex;
+    align-self: flex-start;
+    align-items: center;
+    gap: 0.3rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 0.15rem 0.5rem;
+    border-radius: 20px;
+    width: fit-content;
+    color: white;
+}
+
+.date-badge.urgency-overdue { background: var(--overdue); }
+.date-badge.urgency-today { background: var(--today); }
+.date-badge.urgency-soon { background: var(--soon); color: #1a1a1a; }
+.date-badge.urgency-later { background: var(--later); }
+.date-badge.completed-badge { background: transparent; color: var(--text); opacity: 0.6; padding-left: 0; }
+
+.checkbox-btn {
+    background: transparent;
+    padding: 0;
+    width: 18px;
+    height: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--primary);
+    border-radius: 4px;
+    flex-shrink: 0;
+    cursor: pointer;
+    transition: background-color var(--transition);
+}
+
+.checkbox-btn svg { width: 8px; height: 8px; stroke: var(--primary); stroke-width: 3; fill: none; opacity: 0; transition: opacity var(--transition); }
+.checkbox-btn.checked svg { opacity: 1; }
+.checkbox-btn:hover { background: rgba(33,150,243,0.1); }
+
+.delete-btn {
+    background: transparent;
+    padding: 0;
+    width: 18px;
+    height: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #ff4444;
+    flex-shrink: 0;
+}
+
+.delete-btn svg { width: 8px; height: 8px; stroke: #ff4444; stroke-width: 3; fill: none; }
+.delete-btn:hover { background: rgba(255,68,68,0.1); }
+
+.todo-actions {
+    display: flex;
+    gap: 0.4rem;
+    flex-shrink: 0;
+}
+
+.todo-text { cursor: default; }
+.todo-item:not(.completed) .todo-text { cursor: text; }
+.todo-item:not(.completed) .todo-text:hover { text-decoration: underline dotted; }
+
+.todo-edit-form {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.edit-text-input {
+    flex: 1;
+    min-width: 120px;
+    padding: 0.4rem 0.6rem;
+    font-size: 0.95rem;
+}
+
+.edit-date-input {
+    flex: none;
+    width: 145px;
+    padding: 0.4rem 0.6rem;
+    font-size: 0.9rem;
+}
+
+.todo-item.editing { border-left-color: var(--primary); }
+
+.todo-divider {
+    width: 100%;
+    max-width: 500px;
+    text-align: left;
+    padding: 1rem 0 0.5rem;
+    margin: 1rem 0 0;
+    color: var(--text);
+    opacity: 0.7;
+    font-size: 0.9rem;
+    border-bottom: 1px solid var(--border);
+}
+
+.empty-state { opacity: 0.6; padding: 2rem 0; font-size: 0.95rem; }
+
+.toast-container {
+    position: fixed;
+    bottom: 1rem;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 0.5rem 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    z-index: 2000;
+}
+
+.toast {
+    color: #ffffff;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    opacity: 0;
+    transition: opacity 0.3s ease-in-out;
+    max-width: 300px;
+    box-sizing: border-box;
+    word-wrap: break-word;
+    font-size: 0.875rem;
+}
+
+.toast.show { opacity: 1; }
+.toast.success { background-color: var(--success-status-bg); }
+.toast.error { background-color: var(--danger-status-bg); }
+
+@media (max-width: 480px) {
+    .app { padding: 1rem; }
+    .app-icon { width: 48px; height: 48px; }
+    .todo-form { flex-direction: column; align-items: stretch; }
+    #todoInput, #todoDate { max-width: none; width: 100%; }
+    .button-group { width: 100%; }
+    .button-group button[type="submit"] { flex: 1; }
+}
+</style>
+</head>
+<body>
+<div class="app">
+    <header>
+        <img src="data:image/png;base64,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" alt="CHKT" class="app-icon">
+    </header>
+
+    <main>
+        <div id="todoForm" class="todo-form">
+            <input type="text" id="todoInput" placeholder="What needs to be done?">
+            <input type="date" id="todoDate">
+            <div class="button-group">
+                <button type="button" id="addBtn">Add</button>
+                <input type="file" id="importFile" accept="application/json" style="display:none">
+            </div>
+        </div>
+
+        <ul id="todoList" class="todo-list"></ul>
+
+        <footer class="app-footer">
+            <div class="footer-links">
+                <button type="button" class="footer-link-btn" id="themeToggle">Dark</button>
+                <span class="footer-sep">|</span>
+                <button type="button" class="footer-link-btn" id="clearCompletedLink">Clear Completed</button>
+            </div>
+            <div class="footer-tagline-row">
+                <span><a href="https://github.com/FOSSCharlie/chkt" target="_blank" rel="noopener" class="footer-repo-link">CHKT</a>: A stupidly simple todo list, sorted by due date.</span>
+                <span class="footer-sep">|</span>
+                <button type="button" class="footer-link-btn" id="importLink">Import</button>
+                <span class="footer-sep">|</span>
+                <button type="button" class="footer-link-btn" id="exportLink">Export</button>
+            </div>
+        </footer>
+    </main>
+
+    <div id="toast-container" class="toast-container"></div>
+    <div id="error-banner" style="display:none; position:fixed; top:0; left:0; right:0; background:#dc2626; color:white; padding:0.75rem 1rem; font-size:0.85rem; z-index:3000; text-align:left; font-family:monospace; white-space:pre-wrap;"></div>
+</div>
+
+<script>
+window.addEventListener('error', function(e) {
+    var banner = document.getElementById('error-banner');
+    if (banner) {
+        banner.style.display = 'block';
+        banner.textContent = 'CHKT error: ' + (e.message || 'unknown error') + (e.filename ? (' (line ' + e.lineno + ')') : '');
+    }
+});
+</script>
+
+<script>
+let todos = [];
+let editingId = null;
+const API = '/api/tasks';
+
+// ---------- Theme ----------
+function updateThemeLabel() {
+    const current = document.documentElement.getAttribute('data-theme');
+    const link = document.getElementById('themeToggle');
+    if (link) link.textContent = current === 'dark' ? 'Light' : 'Dark';
+}
+
+function initTheme() {
+    let theme = 'light';
+    try {
+        const saved = localStorage.getItem('chkt-theme');
+        const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+        theme = saved || (prefersDark ? 'dark' : 'light');
+    } catch (e) {
+        console.warn('CHKT: theme storage unavailable, defaulting to light', e);
+    }
+    document.documentElement.setAttribute('data-theme', theme);
+}
+initTheme();
+
+document.getElementById('themeToggle').addEventListener('click', (e) => {
+    e.preventDefault();
+    const current = document.documentElement.getAttribute('data-theme');
+    const next = current === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', next);
+    try { localStorage.setItem('chkt-theme', next); } catch (e) { /* non-fatal */ }
+    updateThemeLabel();
+});
+updateThemeLabel();
+
+// ---------- Toast ----------
+function showToast(message, type = 'success') {
+    const container = document.getElementById('toast-container');
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    toast.textContent = message;
+    container.appendChild(toast);
+    requestAnimationFrame(() => toast.classList.add('show'));
+    setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => toast.remove(), 300);
+    }, 2200);
+}
+
+// ---------- Date helpers ----------
+function todayStr() {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()+0).padStart(2,'0')}`;
+}
+
+function daysUntil(dateStr) {
+    const today = new Date(todayStr() + 'T00:00:00');
+    const target = new Date(dateStr + 'T00:00:00');
+    return Math.round((target - today) / 86400000);
+}
+
+function urgencyOf(dateStr) {
+    const diff = daysUntil(dateStr);
+    if (diff < 0) return 'overdue';
+    if (diff === 0) return 'today';
+    if (diff <= 3) return 'soon';
+    return 'later';
+}
+
+function formatDate(dateStr) {
+    const d = new Date(dateStr + 'T00:00:00');
+    return d.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
+}
+
+function dueBadgeText(dateStr) {
+    const diff = daysUntil(dateStr);
+    const label = formatDate(dateStr);
+    if (diff < 0) return `${Math.abs(diff)}d overdue \u00b7 ${label}`;
+    if (diff === 0) return `Due today \u00b7 ${label}`;
+    if (diff === 1) return `Due tomorrow \u00b7 ${label}`;
+    return `Due ${label} \u00b7 ${diff}d`;
+}
+
+// ---------- Storage (server-backed, shared across devices) ----------
+async function loadTodos() {
+    try {
+        const res = await fetch(API);
+        if (!res.ok) throw new Error('bad response');
+        todos = await res.json();
+    } catch (e) {
+        console.error('CHKT load error:', e);
+        showToast('Could not reach server', 'error');
+        todos = [];
+    }
+    render();
+}
+
+// ---------- Rendering ----------
+function render() {
+    const list = document.getElementById('todoList');
+    list.innerHTML = '';
+
+    const active = todos.filter(t => !t.completed).sort((a, b) => a.dueDate.localeCompare(b.dueDate));
+    const completed = todos.filter(t => t.completed).sort((a, b) => (b.completedDate || '').localeCompare(a.completedDate || ''));
+
+    if (active.length === 0 && completed.length === 0) {
+        const empty = document.createElement('div');
+        empty.className = 'empty-state';
+        empty.textContent = 'Nothing to do!';
+        list.appendChild(empty);
+        return;
+    }
+
+    active.forEach(todo => list.appendChild(renderItem(todo)));
+
+    if (completed.length > 0) {
+        const divider = document.createElement('li');
+        divider.className = 'todo-divider';
+        divider.textContent = `Completed (${completed.length})`;
+        list.appendChild(divider);
+        completed.forEach(todo => list.appendChild(renderItem(todo)));
+    }
+}
+
+function renderItem(todo) {
+    const li = document.createElement('li');
+    const urgency = todo.completed ? null : urgencyOf(todo.dueDate);
+    li.className = `todo-item${todo.completed ? ' completed' : ''}${urgency ? ' urgency-' + urgency : ''}`;
+    li.dataset.id = todo.id;
+
+    const checkboxWrapper = document.createElement('div');
+    checkboxWrapper.className = 'checkbox-wrapper';
+    const checkbox = document.createElement('button');
+    checkbox.type = 'button';
+    checkbox.className = 'checkbox-btn' + (todo.completed ? ' checked' : '');
+    checkbox.setAttribute('aria-label', todo.completed ? 'Mark incomplete' : 'Mark complete');
+    checkbox.innerHTML = '<svg viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"></path></svg>';
+    checkbox.addEventListener('click', () => toggleComplete(todo.id));
+    checkboxWrapper.appendChild(checkbox);
+
+    if (editingId === todo.id) {
+        li.classList.add('editing');
+
+        const editContent = document.createElement('div');
+        editContent.className = 'todo-content todo-edit-form';
+
+        const textInput = document.createElement('input');
+        textInput.type = 'text';
+        textInput.className = 'edit-text-input';
+        textInput.value = todo.text;
+
+        const dateInput = document.createElement('input');
+        dateInput.type = 'date';
+        dateInput.className = 'edit-date-input';
+        dateInput.value = todo.dueDate;
+
+        const submit = () => {
+            const newText = textInput.value.trim();
+            const newDate = dateInput.value;
+            if (!newText) {
+                showToast('Task text cannot be empty', 'error');
+                textInput.focus();
+                return;
+            }
+            removeOutsideListener();
+            saveEdit(todo.id, newText, newDate || todayStr());
+        };
+
+        let removeOutsideListener = () => {};
+
+        textInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') { e.preventDefault(); submit(); }
+            if (e.key === 'Escape') { e.preventDefault(); removeOutsideListener(); cancelEdit(); }
+        });
+        dateInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') { e.preventDefault(); submit(); }
+            if (e.key === 'Escape') { e.preventDefault(); removeOutsideListener(); cancelEdit(); }
+        });
+
+        editContent.appendChild(textInput);
+        editContent.appendChild(dateInput);
+
+        li.appendChild(checkboxWrapper);
+        li.appendChild(editContent);
+
+        requestAnimationFrame(() => {
+            textInput.focus();
+            const outsideHandler = (e) => {
+                if (!li.contains(e.target)) {
+                    submit();
+                }
+            };
+            document.addEventListener('pointerdown', outsideHandler, true);
+            removeOutsideListener = () => document.removeEventListener('pointerdown', outsideHandler, true);
+        });
+        return li;
+    }
+
+    const content = document.createElement('div');
+    content.className = 'todo-content';
+
+    const text = document.createElement('span');
+    text.className = 'todo-text';
+    text.textContent = todo.text;
+    if (!todo.completed) {
+        text.title = 'Click to edit';
+        text.addEventListener('click', () => startEdit(todo.id));
+    }
+
+    const badge = document.createElement('span');
+    if (todo.completed) {
+        badge.className = 'date-badge completed-badge';
+        badge.textContent = `Completed ${formatDate(todo.completedDate)} \u00b7 was due ${formatDate(todo.dueDate)}`;
+    } else {
+        badge.className = `date-badge urgency-${urgency}`;
+        badge.textContent = dueBadgeText(todo.dueDate);
+    }
+
+    content.appendChild(text);
+    content.appendChild(badge);
+
+    const actions = document.createElement('div');
+    actions.className = 'todo-actions';
+
+    const deleteBtn = document.createElement('button');
+    deleteBtn.type = 'button';
+    deleteBtn.className = 'delete-btn';
+    deleteBtn.setAttribute('aria-label', 'Delete task');
+    deleteBtn.innerHTML = '<svg viewBox="0 0 24 24" width="16" height="16"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>';
+    deleteBtn.addEventListener('click', () => deleteTodo(todo.id));
+    actions.appendChild(deleteBtn);
+
+    li.appendChild(checkboxWrapper);
+    li.appendChild(content);
+    li.appendChild(actions);
+    return li;
+}
+
+function startEdit(id) {
+    editingId = id;
+    render();
+}
+
+function cancelEdit() {
+    editingId = null;
+    render();
+}
+
+async function saveEdit(id, text, dueDate) {
+    try {
+        const res = await fetch(`${API}/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ text, dueDate })
+        });
+        if (!res.ok) throw new Error('update failed');
+        editingId = null;
+        await loadTodos();
+        showToast('Task updated');
+    } catch (e) {
+        console.error('CHKT edit error:', e);
+        showToast('Could not update task', 'error');
+    }
+}
+
+// ---------- Actions ----------
+async function addTodo(text, dueDate) {
+    try {
+        const res = await fetch(API, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ text, dueDate })
+        });
+        if (!res.ok) throw new Error('add failed');
+        await loadTodos();
+        showToast('Task added');
+    } catch (e) {
+        console.error('CHKT add error:', e);
+        showToast('Could not add task', 'error');
+    }
+}
+
+async function toggleComplete(id) {
+    const todo = todos.find(t => t.id === id);
+    if (!todo) return;
+    const completed = !todo.completed;
+    const completedDate = completed ? todayStr() : null;
+    try {
+        const res = await fetch(`${API}/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ completed, completedDate })
+        });
+        if (!res.ok) throw new Error('update failed');
+        await loadTodos();
+        showToast(completed ? 'Marked complete' : 'Marked incomplete');
+    } catch (e) {
+        console.error('CHKT toggle error:', e);
+        showToast('Could not update task', 'error');
+    }
+}
+
+async function deleteTodo(id) {
+    try {
+        const res = await fetch(`${API}/${id}`, { method: 'DELETE' });
+        if (!res.ok) throw new Error('delete failed');
+        await loadTodos();
+        showToast('Task deleted', 'error');
+    } catch (e) {
+        console.error('CHKT delete error:', e);
+        showToast('Could not delete task', 'error');
+    }
+}
+
+async function clearCompleted() {
+    const completedIds = todos.filter(t => t.completed).map(t => t.id);
+    if (completedIds.length === 0) {
+        showToast('No completed tasks to clear', 'error');
+        return;
+    }
+    try {
+        await Promise.all(completedIds.map(id => fetch(`${API}/${id}`, { method: 'DELETE' })));
+        await loadTodos();
+        showToast('Completed tasks cleared');
+    } catch (e) {
+        console.error('CHKT clear error:', e);
+        showToast('Could not clear completed tasks', 'error');
+    }
+}
+
+// ---------- Export / Import ----------
+function exportTodos() {
+    const dataStr = JSON.stringify(todos, null, 2);
+    const blob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'chkt-tasks.json';
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+    showToast('Tasks exported');
+}
+
+async function importTodosFromFile(file) {
+    try {
+        const text = await file.text();
+        const imported = JSON.parse(text);
+        if (!Array.isArray(imported)) throw new Error('not an array');
+        const res = await fetch('/api/import', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ tasks: imported })
+        });
+        if (!res.ok) throw new Error('import failed');
+        await loadTodos();
+        showToast('Tasks imported');
+    } catch (e) {
+        console.error('CHKT import error:', e);
+        showToast('Could not import file - check it is a valid CHKT export', 'error');
+    }
+}
+
+// ---------- Wire up ----------
+function handleAddClick() {
+    const input = document.getElementById('todoInput');
+    const dateInput = document.getElementById('todoDate');
+    const text = input.value.trim();
+    let dueDate = dateInput.value;
+
+    if (!text) {
+        showToast('Enter a task first', 'error');
+        input.focus();
+        return;
+    }
+    if (!dueDate) {
+        dueDate = todayStr();
+    }
+
+    addTodo(text, dueDate);
+    input.value = '';
+    dateInput.value = todayStr();
+    input.focus();
+}
+
+try {
+    document.getElementById('addBtn').addEventListener('click', handleAddClick);
+
+    document.getElementById('todoInput').addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            handleAddClick();
+        }
+    });
+
+    document.getElementById('clearCompletedLink').addEventListener('click', (e) => {
+        e.preventDefault();
+        clearCompleted();
+    });
+
+    document.getElementById('exportLink').addEventListener('click', (e) => {
+        e.preventDefault();
+        exportTodos();
+    });
+
+    document.getElementById('importLink').addEventListener('click', (e) => {
+        e.preventDefault();
+        document.getElementById('importFile').click();
+    });
+
+    document.getElementById('importFile').addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (file) importTodosFromFile(file);
+        e.target.value = '';
+    });
+
+    // Default the date picker to today for convenience
+    document.getElementById('todoDate').value = todayStr();
+
+    loadTodos();
+} catch (e) {
+    const banner = document.getElementById('error-banner');
+    if (banner) {
+        banner.style.display = 'block';
+        banner.textContent = 'CHKT setup error: ' + e.message;
+    }
+}
+
+// PWA: register the service worker for offline use / installability.
+// Wrapped so this never blocks or breaks the rest of the app if it's
+// unsupported (e.g. running over plain http, or in a sandboxed preview).
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./service-worker.js').catch((e) => {
+            console.warn('CHKT: service worker registration failed', e);
+        });
+    });
+}
+</script>
+</body>
+</html>

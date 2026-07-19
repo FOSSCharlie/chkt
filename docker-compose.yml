@@ -1,0 +1,12 @@
+services:
+  chkt:
+    image: ghcr.io/fosscharlie/chkt:latest
+    container_name: chkt
+    restart: unless-stopped
+    ports:
+      - "4080:3000"
+    volumes:
+      - chkt-data:/data
+
+volumes:
+  chkt-data:

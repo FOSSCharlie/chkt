@@ -1,0 +1,25 @@
+{
+  "name": "CHKT",
+  "short_name": "CHKT",
+  "description": "CHKT: A stupidly simple todo list, sorted by due date.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f5f5f5",
+  "theme_color": "#2196F3",
+  "icons": [
+    {
+      "src": "chkt-logo-small.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "chkt-logo-large.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
