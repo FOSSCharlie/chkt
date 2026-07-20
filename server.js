@@ -63,7 +63,11 @@ app.put('/api/tasks/:id', (req, res) => {
     const tasks = loadTasks();
     const task = tasks.find(t => t.id === req.params.id);
     if (!task) return res.status(404).json({ error: 'Task not found' });
-    Object.assign(task, req.body);
+    const { text, dueDate, completed, completedDate } = req.body;
+    if (text !== undefined) task.text = text;
+    if (dueDate !== undefined) task.dueDate = dueDate;
+    if (completed !== undefined) task.completed = completed;
+    if (completedDate !== undefined) task.completedDate = completedDate;
     saveTasks(tasks);
     res.json(task);
 });

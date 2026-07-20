@@ -4,6 +4,12 @@ on:
   push:
     branches: [ main ]
   workflow_dispatch:
+  schedule:
+    # Weekly rebuild (Mondays 06:00 UTC) so the image keeps picking up
+    # patched OS packages (OpenSSL, etc.) even when no app code has
+    # changed. `apk upgrade` in the Dockerfile does the actual patching
+    # at build time; this just makes sure a build happens regularly.
+    - cron: '0 6 * * 1'
 
 jobs:
   build-and-push:

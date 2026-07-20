@@ -2,6 +2,32 @@
 
 All notable changes to CHKT are documented in this file.
 
+## 1.7.0 - 2026-07-21
+
+### Security
+- Dockerfile rebuilt as a multi-stage build: the final image no
+  longer includes the npm CLI (only `node` is needed at runtime),
+  which removes a large set of vulnerable transitive dependencies
+  bundled with npm (`tar`, `glob`, `minimatch`, `cross-spawn`,
+  `sigstore`, `brace-expansion`, `ip-address`, `diff`, etc.) from the
+  shipped image entirely.
+- Added `apk update && apk upgrade` at build time so the image picks
+  up currently available OS package patches (OpenSSL/`libssl3`,
+  `libcrypto3`) instead of whatever was baked into the base image
+  when it was published.
+- Container now runs as a non-root user (fixed UID 1000) instead of
+  root. **If you're upgrading an existing install**, run
+  `sudo chown -R 1000:1000 /opt/chkt` on the host so the container
+  can still write to the data folder.
+- Added a weekly scheduled rebuild (Mondays 06:00 UTC) to the GitHub
+  Actions workflow, so OS-level patches keep getting picked up even
+  when there's no app code change to trigger a push.
+- `PUT /api/tasks/:id` now only applies a whitelist of fields
+  (`text`, `dueDate`, `completed`, `completedDate`) instead of
+  applying the entire request body onto the stored task, closing a
+  mass-assignment gap where a client could overwrite a task's `id` or
+  inject arbitrary fields.
+
 ## 1.6.1 - 2026-07-21
 
 ### Changed

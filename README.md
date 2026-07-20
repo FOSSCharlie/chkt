@@ -92,6 +92,15 @@ with the `DATA_FILE` environment variable, e.g.
    docker compose up -d
    ```
 
+> **Note:** since v1.7.0 the container runs as a non-root user (UID
+> 1000) rather than root. After creating `/opt/chkt` (or if you're
+> upgrading an existing install), run:
+> ```bash
+> sudo chown -R 1000:1000 /opt/chkt
+> ```
+> so the container can write to the mounted data folder. Without
+> this, the container will fail to create or update `tasks.json`.
+
 Open <http://localhost:4080>. Tasks are stored server-side in a JSON
 file inside `/opt/chkt`, so every device that opens this URL sees
 the same task list.
