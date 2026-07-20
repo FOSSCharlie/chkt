@@ -498,18 +498,36 @@ function dueBadgeText(dateStr) {
 }
 
 // ---------- Storage (server-backed, shared across devices) ----------
-async function loadTodos() {
+async function loadTodos(opts) {
+    const silent = opts && opts.silent;
+    // Don't yank the list out from under someone mid-edit on a background refresh.
+    if (silent && editingId !== null) return;
     try {
         const res = await fetch(API);
         if (!res.ok) throw new Error('bad response');
-        todos = await res.json();
+        const fresh = await res.json();
+        // Skip the render if nothing actually changed, to avoid flicker.
+        if (silent && JSON.stringify(fresh) === JSON.stringify(todos)) return;
+        todos = fresh;
     } catch (e) {
         console.error('CHKT load error:', e);
-        showToast('Could not reach server', 'error');
-        todos = [];
+        if (!silent) showToast('Could not reach server', 'error');
+        if (!silent) todos = [];
+        else return;
     }
     render();
 }
+
+// ---------- Cross-device sync ----------
+// Server storage means every device shares the same data, but each device
+// only sees it after asking. Re-fetch whenever this tab becomes active again
+// (e.g. switching from phone back to this browser tab), and periodically in
+// the background as a backstop for tabs left open and idle.
+document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') loadTodos({ silent: true });
+});
+window.addEventListener('focus', () => loadTodos({ silent: true }));
+setInterval(() => loadTodos({ silent: true }), 10000);
 
 // ---------- Rendering ----------
 function render() {

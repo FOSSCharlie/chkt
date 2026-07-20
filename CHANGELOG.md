@@ -2,6 +2,18 @@
 
 All notable changes to CHKT are documented in this file.
 
+## 1.4.0 - 2026-07-20
+
+### Added
+- Task list now auto-refreshes when a tab/window regains focus or
+  becomes visible again (e.g. switching from your phone back to a
+  browser tab), plus a 10-second background poll as a backstop for
+  tabs left open and idle. Fixes devices appearing out of sync until
+  a manual page reload.
+- Background refreshes are skipped while a task is being edited, so
+  they never interrupt typing, and skip re-rendering if nothing
+  actually changed.
+
 ## 1.3.1 - 2026-07-20
 
 ### Fixed
