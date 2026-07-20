@@ -121,3 +121,17 @@ chkt/
 
 Keep it dumb, keep it simple - if you're writing complex code to
 solve a simple problem here, you're probably doing it wrong.
+
+## License
+
+Snippitor is free software, licensed under the **GNU General Public
+License v3.0** (or, at your option, any later version). See the LICENSE,
+file for the full text.
+
+## Disclaimer
+
+This software is provided **"as is"**, without warranty of any kind,
+express or implied - see sections 15-16 of the LICENSE for the exact
+legal terms. **You use this applet entirely at your own risk.** Given
+that Snippitor works by watching keystrokes system-wide in order to
+detect triggers, please read the "Known limitations" section above
