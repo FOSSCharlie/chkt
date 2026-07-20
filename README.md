@@ -47,14 +47,16 @@ Open <http://localhost:8080> in your browser.
 
    ```bash
    docker pull ghcr.io/fosscharlie/chkt:latest
-   docker run -p 4080:3000 -v chkt-data:/data ghcr.io/fosscharlie/chkt:latest
+   sudo mkdir -p /opt/chkt
+   docker run -p 4080:3000 -v /opt/chkt:/data ghcr.io/fosscharlie/chkt:latest
    ```
 
 2. Or build locally
 
    ```bash
    docker build -t chkt .
-   docker run -p 4080:3000 -v chkt-data:/data chkt
+   sudo mkdir -p /opt/chkt
+   docker run -p 4080:3000 -v /opt/chkt:/data chkt
    ```
 
 3. Docker Compose
@@ -68,19 +70,17 @@ Open <http://localhost:8080> in your browser.
        ports:
          - "4080:3000"
        volumes:
-         - chkt-data:/data
-
-   volumes:
-     chkt-data:
+         - /opt/chkt:/data
    ```
 
    ```bash
+   sudo mkdir -p /opt/chkt
    docker compose up -d
    ```
 
 Open <http://localhost:4080>. Tasks are stored server-side in a JSON
-file inside the `chkt-data` volume, so every device that opens this
-URL sees the same task list.
+file inside `/opt/chkt`, so every device that opens this URL sees
+the same task list.
 
 ## Automatic image publishing
 
