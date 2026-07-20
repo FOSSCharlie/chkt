@@ -2,6 +2,25 @@
 
 All notable changes to CHKT are documented in this file.
 
+## 1.6.0 - 2026-07-20
+
+### Changed
+- Delete button is now a small red dot instead of an X icon in a
+  square outline.
+- Deleting a task now requires confirmation: clicking the dot turns
+  it into a "Confirm" pill; a second click deletes the task.
+  Clicking anywhere else, pressing Escape, or letting a background
+  sync happen cancels the pending delete and reverts to the dot.
+
+## 1.5.0 - 2026-07-20
+
+### Added
+- New `GET /api/version` endpoint that reads the version straight from
+  `package.json`.
+- Footer credit line now shows the running version (e.g. "CHKT
+  v1.5.0: ...") and updates automatically on every release — no more
+  manually editing the version number in the HTML.
+
 ## 1.4.0 - 2026-07-20
 
 ### Added
