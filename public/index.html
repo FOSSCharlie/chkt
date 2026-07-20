@@ -391,8 +391,9 @@ input[type="date"] { color-scheme: light; }
                 <button type="button" class="footer-link-btn" id="clearCompletedLink">Clear Completed</button>
             </div>
             <div class="footer-tagline-row">
-                <span class="footer-credit"><a href="https://github.com/FOSSCharlie/chkt" target="_blank" rel="noopener" class="footer-repo-link">CHKT</a>: A stupidly simple todo list, sorted by due date.</span>
-                <span class="footer-sep">|</span>
+                <span class="footer-credit"><a href="https://github.com/FOSSCharlie/chkt" target="_blank" rel="noopener" class="footer-repo-link">CHKT</a><span id="footerVersion"></span>: A stupidly simple todo list, sorted by due date.</span>
+            </div>
+            <div class="footer-links">
                 <button type="button" class="footer-link-btn" id="importLink">Import</button>
                 <span class="footer-sep">|</span>
                 <button type="button" class="footer-link-btn" id="exportLink">Export</button>
@@ -851,6 +852,16 @@ try {
 
     // Default the date picker to today for convenience
     document.getElementById('todoDate').value = todayStr();
+
+    // Show the running version in the footer, pulled from the server so it
+    // always matches package.json without needing manual edits here.
+    fetch('/api/version')
+        .then(res => res.json())
+        .then(data => {
+            const el = document.getElementById('footerVersion');
+            if (el && data.version) el.textContent = ' v' + data.version;
+        })
+        .catch(() => {}); // Footer just omits the version if this fails.
 
     loadTodos();
 } catch (e) {

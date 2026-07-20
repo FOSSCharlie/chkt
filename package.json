@@ -1,6 +1,6 @@
 {
   "name": "chkt-server",
-  "version": "1.4.0",
+  "version": "1.5.0",
   "description": "A stupidly simple todo list, sorted by due date.",
   "main": "server.js",
   "license": "MIT",

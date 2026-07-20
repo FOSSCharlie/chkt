@@ -1,6 +1,7 @@
 const express = require('express');
 const fs = require('fs');
 const path = require('path');
+const { version } = require('./package.json');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -8,6 +9,10 @@ const DATA_FILE = process.env.DATA_FILE || '/data/tasks.json';
 
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
+
+app.get('/api/version', (req, res) => {
+    res.json({ version });
+});
 
 function ensureDataFile() {
     const dataDir = path.dirname(DATA_FILE);
