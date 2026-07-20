@@ -87,7 +87,7 @@ header {
     text-align: center;
 }
 
-.footer-links { display: flex; align-items: center; justify-content: center; gap: 0.4rem; flex-wrap: wrap; font-size: 1.2rem; }
+.footer-links { display: flex; align-items: center; justify-content: center; gap: 0.4rem; flex-wrap: wrap; font-size: 0.6rem; }
 
 .footer-links a,
 .footer-link-btn {
@@ -105,6 +105,7 @@ header {
 .footer-link-btn:hover { opacity: 1; text-decoration: underline; background: none; }
 
 .footer-sep { opacity: 0.5; }
+.footer-credit { font-weight: 700; }
 
 .footer-repo-link {
     color: var(--text);
@@ -147,6 +148,9 @@ input {
 }
 
 input:focus { outline: none; border-color: var(--primary); }
+
+input[type="date"] { color-scheme: light; }
+[data-theme="dark"] input[type="date"] { color-scheme: dark; }
 
 #todoInput { flex: 1; min-width: 180px; max-width: 400px; }
 
@@ -387,7 +391,7 @@ input:focus { outline: none; border-color: var(--primary); }
                 <button type="button" class="footer-link-btn" id="clearCompletedLink">Clear Completed</button>
             </div>
             <div class="footer-tagline-row">
-                <span><a href="https://github.com/FOSSCharlie/chkt" target="_blank" rel="noopener" class="footer-repo-link">CHKT</a>: A stupidly simple todo list, sorted by due date.</span>
+                <span class="footer-credit"><a href="https://github.com/FOSSCharlie/chkt" target="_blank" rel="noopener" class="footer-repo-link">CHKT</a>: A stupidly simple todo list, sorted by due date.</span>
                 <span class="footer-sep">|</span>
                 <button type="button" class="footer-link-btn" id="importLink">Import</button>
                 <span class="footer-sep">|</span>

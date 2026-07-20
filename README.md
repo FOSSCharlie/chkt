@@ -8,6 +8,8 @@ records the completion date.
 
 > ⚠️ Vibe coded with [Claude](https://claude.ai).
 
+See [CHANGELOG.md](./CHANGELOG.md) for version history.
+
 ## Features
 
 - ✨ Clean, minimal interface
@@ -121,3 +123,7 @@ chkt/
 
 Keep it dumb, keep it simple - if you're writing complex code to
 solve a simple problem here, you're probably doing it wrong.
+
+## License
+
+MIT - see [LICENSE](./LICENSE).

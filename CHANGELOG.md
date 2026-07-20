@@ -2,6 +2,19 @@
 
 All notable changes to CHKT are documented in this file.
 
+## 1.3.1 - 2026-07-20
+
+### Fixed
+- Date input's calendar icon was invisible in dark mode; added
+  `color-scheme` so the browser renders native date-picker controls
+  to match the active theme
+
+### Changed
+- Footer's Dark/Light and Clear Completed links reduced to 50% of
+  their previous size
+- CHKT credit line in the footer ("CHKT: A stupidly simple todo
+  list, sorted by due date.") now bold
+
 ## 1.3.0 - 2026-07-20
 
 ### Changed
