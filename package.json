@@ -1,7 +1,7 @@
 {
   "name": "chkt-server",
-  "version": "1.0.0",
-  "description": "A stupidly simple todo list, sorted by what's due next.",
+  "version": "1.3.0",
+  "description": "A stupidly simple todo list, sorted by due date.",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
