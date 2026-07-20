@@ -4,7 +4,7 @@
 
 # CHKT
 
-A stupidly simple todo list, sorted by due date.
+A stupidly simple todo list.
 
 CHKT is a small, dependency-free todo list. Every task has a due
 date, active tasks are sorted soonest-first, and completing a task

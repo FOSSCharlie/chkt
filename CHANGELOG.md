@@ -2,6 +2,13 @@
 
 All notable changes to CHKT are documented in this file.
 
+## 1.6.1 - 2026-07-21
+
+### Changed
+- Shortened the tagline from "A stupidly simple todo list, sorted by
+  due date." to "A stupidly simple todo list." — updated in the app
+  footer, `package.json`, `manifest.json`, and README.
+
 ## 1.6.0 - 2026-07-20
 
 ### Changed

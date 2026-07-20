@@ -1,7 +1,7 @@
 {
   "name": "CHKT",
   "short_name": "CHKT",
-  "description": "CHKT: A stupidly simple todo list, sorted by due date.",
+  "description": "CHKT: A stupidly simple todo list.",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
