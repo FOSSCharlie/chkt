@@ -6,7 +6,4 @@ services:
     ports:
       - "4080:3000"
     volumes:
-      - chkt-data:/data
-
-volumes:
-  chkt-data:
+      - /opt/chkt:/data

@@ -6,6 +6,8 @@ CHKT is a small, dependency-free todo list. Every task has a due
 date, active tasks are sorted soonest-first, and completing a task
 records the completion date.
 
+> ⚠️ Vibe coded with [Claude](https://claude.ai).
+
 ## Features
 
 - ✨ Clean, minimal interface
@@ -14,27 +16,33 @@ records the completion date.
 - 🚦 Colour-coded urgency (overdue / due today / due soon / later)
 - ✅ Completion date recorded automatically when you check a task off
 - 📱 Installable PWA (works offline, "Add to Home Screen")
-- 🚀 Fully static - no database, no backend, no accounts
+- 🔄 Server-side storage - same task list on every device
 
 ## Storage
 
-CHKT stores its data entirely in the browser (`localStorage`). There
-is no server-side database and no API - it's a static site. This
-means todos are local to whichever browser/device you use it from.
+CHKT stores tasks server-side in a single JSON file
+(`tasks.json`), written by a small Node/Express backend. There is
+no database and no accounts, just one file. Because storage lives
+on the server rather than in the browser, every device that opens
+the same URL sees the same task list.
 
 ## Quick Start
 
 ### Running locally without Docker
 
-Since this is a fully static site, any static file server works:
+Requires Node.js 20+.
 
 ```bash
 git clone https://github.com/FOSSCharlie/chkt.git
 cd chkt
-python3 -m http.server --directory public 8080
+npm install
+node server.js
 ```
 
-Open <http://localhost:8080> in your browser.
+Open <http://localhost:3000>. Tasks are written to `tasks.json`,
+whose location defaults to `/data/tasks.json` but can be overridden
+with the `DATA_FILE` environment variable, e.g.
+`DATA_FILE=./tasks.json node server.js`.
 
 > Note: service workers require HTTPS (localhost is exempt for
 > testing), so offline support and "Add to Home Screen" will only
@@ -47,14 +55,16 @@ Open <http://localhost:8080> in your browser.
 
    ```bash
    docker pull ghcr.io/fosscharlie/chkt:latest
-   docker run -p 4080:3000 -v chkt-data:/data ghcr.io/fosscharlie/chkt:latest
+   sudo mkdir -p /opt/chkt
+   docker run -p 4080:3000 -v /opt/chkt:/data ghcr.io/fosscharlie/chkt:latest
    ```
 
 2. Or build locally
 
    ```bash
    docker build -t chkt .
-   docker run -p 4080:3000 -v chkt-data:/data chkt
+   sudo mkdir -p /opt/chkt
+   docker run -p 4080:3000 -v /opt/chkt:/data chkt
    ```
 
 3. Docker Compose
@@ -68,19 +78,17 @@ Open <http://localhost:8080> in your browser.
        ports:
          - "4080:3000"
        volumes:
-         - chkt-data:/data
-
-   volumes:
-     chkt-data:
+         - /opt/chkt:/data
    ```
 
    ```bash
+   sudo mkdir -p /opt/chkt
    docker compose up -d
    ```
 
 Open <http://localhost:4080>. Tasks are stored server-side in a JSON
-file inside the `chkt-data` volume, so every device that opens this
-URL sees the same task list.
+file inside `/opt/chkt`, so every device that opens this URL sees
+the same task list.
 
 ## Automatic image publishing
 
@@ -94,15 +102,18 @@ tab if you want to `docker pull` it without authenticating.
 
 ```
 chkt/
-├── public/                 # Static app served by the container
+├── public/                 # Static frontend served by the app
 │   ├── index.html
 │   ├── manifest.json
 │   ├── service-worker.js
 │   ├── chkt-logo-small.png
 │   └── chkt-logo-large.png
-├── nginx.conf              # Serves public/, with correct cache headers
+├── server.js                # Node/Express backend, reads/writes tasks.json
+├── package.json
 ├── Dockerfile
 ├── docker-compose.yml
+├── .dockerignore
+├── .gitignore
 └── .github/workflows/docker-publish.yml
 ```
 

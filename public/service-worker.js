@@ -1,4 +1,4 @@
-const CACHE_NAME = 'chkt-cache-v1';
+const CACHE_NAME = 'chkt-cache-v2';
 const ASSETS = [
   './',
   './index.html',
@@ -29,6 +29,16 @@ self.addEventListener('activate', (event) => {
 
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
+
+  const url = new URL(event.request.url);
+
+  // Task data is dynamic and must always be fresh - never serve it from
+  // cache, or newly added/edited/completed tasks won't show up until a
+  // manual page refresh.
+  if (url.pathname.startsWith('/api/')) {
+    event.respondWith(fetch(event.request));
+    return;
+  }
 
   event.respondWith(
     caches.match(event.request).then((cached) => {
