@@ -126,4 +126,11 @@ solve a simple problem here, you're probably doing it wrong.
 
 ## License
 
-MIT - see [LICENSE](./LICENSE).
+CHKT is free software, licensed under the MIT License. See the
+[LICENSE](./LICENSE) file for the full text.
+
+## Disclaimer
+
+This software is provided "as is", without warranty of any kind,
+express or implied - see the LICENSE file for the exact legal
+terms. You use it entirely at your own risk.
