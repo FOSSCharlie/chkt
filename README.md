@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="public/chkt-logo-small.png" width="96" alt="CHKT logo">
+</p>
+
 # CHKT
 
 A stupidly simple todo list, sorted by due date.
