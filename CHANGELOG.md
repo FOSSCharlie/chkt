@@ -2,6 +2,17 @@
 
 All notable changes to CHKT are documented in this file.
 
+## 1.7.2 - 2026-07-21
+
+### Fixed
+- Container was crashing on startup (`Cannot find module
+  './package.json'`) because the multi-stage Dockerfile introduced in
+  1.7.0 never copied `package.json` into the final image — only
+  `node_modules`, `server.js`, and `public/` were copied.
+  `server.js` reads `package.json` at startup for the `/api/version`
+  endpoint, so this broke every deploy. Final stage now copies
+  `package.json` too.
+
 ## 1.7.1 - 2026-07-21
 
 ### Fixed

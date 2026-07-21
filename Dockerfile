@@ -14,6 +14,7 @@ WORKDIR /app
 RUN apk update && apk upgrade --no-cache
 
 COPY --from=build /app/node_modules ./node_modules
+COPY package.json ./
 COPY server.js ./
 COPY public ./public
 
