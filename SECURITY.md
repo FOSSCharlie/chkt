@@ -1,10 +1,34 @@
 # CHKT Security Review
 
-**Date:** 2026-07-21
+**Date:** 2026-07-21 (last updated for v1.7.2)
+
+> ✅ **Latest scan result:** Trivy (via Arcane) reports **0
+> vulnerabilities** against the current image (v1.7.2) — down from
+> 48 (High/Medium/Low) found in the initial scan. See "OS and
+> npm-tooling CVEs" below for what those were and how they were
+> fixed.
 
 Reviewed: `server.js`, `public/index.html`, `Dockerfile`,
 `docker-compose.yml`, `.dockerignore`/`.gitignore`,
-`.github/workflows/docker-publish.yml`, `package.json` (v1.6.1).
+`.github/workflows/docker-publish.yml`, `package.json`.
+
+## Status at a glance
+
+| # | Finding | Severity | Status |
+|---|---------|----------|--------|
+| 1 | No authentication on the API | High (if exposed publicly) | Open — by design, mitigate via network isolation |
+| 2 | No CSRF protection | Medium | Open — same root cause as #1 |
+| 3 | `PUT` allowed overwriting any field | Medium | ✅ Fixed in v1.7.0 |
+| 4 | `/api/import` doesn't validate task shape | Low | Open |
+| 5 | No rate limiting | Low | Open |
+| 6 | Container ran as root | Low | ✅ Fixed in v1.7.0 |
+| 7 | No security headers | Low | Open |
+| — | OS + npm-tooling CVEs (Trivy scan) | 48 CVEs, High/Med/Low | ✅ Fixed in v1.7.2 — verified 0 vulnerabilities |
+
+"Open" here doesn't mean urgent — see each finding below for context.
+Most of them only matter if CHKT is exposed beyond a trusted network.
+
+---
 
 ## The big picture first
 
@@ -20,7 +44,7 @@ every task."
 
 Everything below is ranked by real-world impact, assuming the
 "trusted network only" model. If you're planning to expose this
-publicly, the first finding is the one to fix before anything else.
+publicly, finding #1 is the one to fix before anything else.
 
 ---
 
@@ -55,16 +79,13 @@ request some other page tricked your browser into sending."
 resolves itself, since a third-party page won't have your credential
 to attach.
 
-### 3. `PUT /api/tasks/:id` allows overwriting any field (Medium)
-```js
-Object.assign(task, req.body);
-```
-This applies whatever the client sends directly onto the stored task
-object — including fields you didn't intend to expose, like `id`. A
-client could rewrite a task's `id` and break lookups, or add
-unexpected extra fields into the stored JSON.
+### 3. `PUT /api/tasks/:id` allowed overwriting any field — ✅ Fixed in v1.7.0
+`server.js` used to apply the entire request body directly onto the
+stored task with `Object.assign(task, req.body)`, which meant a
+client could overwrite fields you didn't intend to expose — like
+`id` — or inject arbitrary extra fields.
 
-**Fix:** Whitelist the fields you actually intend to accept:
+It now whitelists exactly which fields it applies:
 ```js
 const { text, dueDate, completed, completedDate } = req.body;
 if (text !== undefined) task.text = text;
@@ -98,27 +119,17 @@ race each other.
 a trusted network, a simple rate-limit middleware
 (`express-rate-limit`) is a one-line addition.
 
-### 6. Container runs as root (Low)
-The `Dockerfile` never sets a non-root `USER`, so the Node process
-inside the container runs as root by default.
-
-**Fix:**
+### 6. Container ran as root — ✅ Fixed in v1.7.0
+The Dockerfile now runs the container as the `node` user (UID/GID
+1000) that ships built into the `node:20-alpine` base image, instead
+of root:
 ```dockerfile
-FROM node:20-alpine
-WORKDIR /app
-COPY package*.json ./
-RUN npm install --omit=dev
-COPY server.js ./
-COPY public ./public
-RUN addgroup -S chkt && adduser -S chkt -G chkt && chown -R chkt:chkt /app
-USER chkt
-EXPOSE 3000
-CMD ["npm", "start"]
+RUN chown -R node:node /app
+USER node
 ```
-Note: your bind mount is `/opt/chkt:/data` — if you add this, make
-sure the `chkt` user can write to that mounted folder (you may need
-to `chown` it on the host, or keep the data directory writable by the
-container's UID).
+This requires the bind-mounted data folder on the host to be writable
+by UID 1000 — see the README for the `sudo chown -R 1000:1000
+/opt/chkt` step required on upgrade.
 
 ### 7. No security headers (Low)
 There's no `helmet` (or manual headers) setting things like
@@ -135,39 +146,10 @@ app.use(helmet());
 
 ---
 
-## What's already solid
+## OS and npm-tooling CVEs (found by Trivy, fixed in v1.7.2)
 
-- **No XSS via task text.** Every place task text is rendered uses
-  `textContent`, never `innerHTML`, on the frontend — so a task named
-  `<script>...</script>` just displays as literal text instead of
-  executing. This was the thing I'd have expected to find broken, and
-  it isn't.
-- **Dependencies are clean.** The only runtime dependency is Express,
-  pinned as `^4.18.2`. Running `npm audit` against that range
-  resolves to Express 4.22.2 with **0 known vulnerabilities** — the
-  caret range is correctly picking up patched versions automatically.
-- **GitHub Actions permissions are properly scoped** —
-  `contents: read`, `packages: write`, nothing broader than it needs.
-- **`.dockerignore` excludes `.git`**, so your git history doesn't
-  leak into image layers.
-- **No secrets in the repo** — nothing hardcoded that shouldn't be
-  there.
-
----
-
-## Bottom line
-
-For what CHKT is — a personal, self-hosted todo list you run on your
-own network — there's nothing here that needs fixing today. The one
-finding worth actually acting on is **#1: don't expose the port to
-the open internet without something (a proxy with auth, or a VPN) in
-front of it.** Everything else is small, cheap-to-fix hardening you
-can pick up if/when you want it, not urgent problems.
-
-## Addendum — OS and npm-tooling CVEs (v1.7.0)
-
-A container scan (Arcane) surfaced a large batch of CVEs that the
-original review above didn't cover, because `npm audit` only checks
+A container scan (Arcane, using Trivy) surfaced a large batch of CVEs
+that the checks above didn't cover, because `npm audit` only checks
 the app's own declared dependencies (just Express) — it doesn't scan
 the base OS image or the npm CLI's own bundled tooling. Both are real
 gaps, both are now fixed:
@@ -184,18 +166,39 @@ gaps, both are now fixed:
   separate stage and removes the npm CLI entirely from the final
   image, which removes this whole category of findings rather than
   chasing each package version individually.
-- Container also now runs as a **non-root user** (fixed UID 1000)
-  instead of root, addressing finding #6 from the original review at
-  the same time.
-
-If you re-run Arcane (or Trivy/Grype) against the rebuilt image, the
-OS-level findings should drop to whatever's still unpatched upstream
-in Alpine at build time, and the npm-tooling findings should
-disappear entirely since that tooling is no longer present in the
-image.
 
 **Verified 2026-07-21:** re-scanned the rebuilt image (v1.7.2) with
-Arcane/Trivy — **0 vulnerabilities**, down from the original 48
-(High/Medium/Low across `libcrypto3`, `libssl3`, and the npm-bundled
-packages listed above).
+Arcane/Trivy — **0 vulnerabilities**, down from the original 48.
 
+---
+
+## What's already solid
+
+- **No XSS via task text.** Every place task text is rendered uses
+  `textContent`, never `innerHTML`, on the frontend — so a task named
+  `<script>...</script>` just displays as literal text instead of
+  executing. This was the thing I'd have expected to find broken, and
+  it isn't.
+- **Dependencies are clean.** The only runtime dependency is Express,
+  pinned as `^4.18.2`. Running `npm audit` against that range
+  resolves to Express 4.22.2 with 0 known vulnerabilities — the caret
+  range is correctly picking up patched versions automatically.
+- **GitHub Actions permissions are properly scoped** —
+  `contents: read`, `packages: write`, nothing broader than it needs.
+- **`.dockerignore` excludes `.git`**, so your git history doesn't
+  leak into image layers.
+- **No secrets in the repo** — nothing hardcoded that shouldn't be
+  there.
+
+---
+
+## Bottom line
+
+As of v1.7.2, the image scans clean (0 vulnerabilities via Trivy),
+and both fixable code-level findings from the original review (#3
+and #6) are resolved. The only thing genuinely worth acting on is
+**#1: don't expose the port to the open internet without something
+(a proxy with auth, or a VPN) in front of it** — that one's a design
+tradeoff rather than a bug, and it's your call based on how you use
+CHKT. Everything else remaining (#2, #4, #5, #7) is small, cheap
+hardening you can pick up if/when you want it, not an urgent problem.
