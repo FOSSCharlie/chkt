@@ -2,6 +2,17 @@
 
 All notable changes to CHKT are documented in this file.
 
+## 1.7.1 - 2026-07-21
+
+### Fixed
+- Docker build was failing (`addgroup -g 1000` exit code 1) because
+  `node:20-alpine` already ships with a built-in `node` user at UID/GID
+  1000 — the Dockerfile was trying to create a second, conflicting
+  user at the same ID. Now reuses the image's existing `node` user
+  instead of creating a new one. No change to the UID (still 1000),
+  so the `sudo chown -R 1000:1000 /opt/chkt` step from 1.7.0 is
+  unaffected.
+
 ## 1.7.0 - 2026-07-21
 
 ### Security

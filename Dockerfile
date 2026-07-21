@@ -23,8 +23,8 @@ COPY public ./public
 # entirely, since the app is started with `node`, not `npm start`.
 RUN rm -rf /usr/local/lib/node_modules/npm /usr/local/bin/npm /usr/local/bin/npx
 
-RUN addgroup -g 1000 -S chkt && adduser -u 1000 -S chkt -G chkt && chown -R chkt:chkt /app
-USER chkt
+RUN chown -R node:node /app
+USER node
 
 EXPOSE 3000
 CMD ["node", "server.js"]
