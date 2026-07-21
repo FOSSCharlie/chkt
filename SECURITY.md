@@ -194,3 +194,8 @@ in Alpine at build time, and the npm-tooling findings should
 disappear entirely since that tooling is no longer present in the
 image.
 
+**Verified 2026-07-21:** re-scanned the rebuilt image (v1.7.2) with
+Arcane/Trivy — **0 vulnerabilities**, down from the original 48
+(High/Medium/Low across `libcrypto3`, `libssl3`, and the npm-bundled
+packages listed above).
+
