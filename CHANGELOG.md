@@ -2,6 +2,22 @@
 
 All notable changes to CHKT are documented in this file.
 
+## 1.8.0 - 2026-07-22
+
+### Changed
+- App now uses the Inter typeface throughout, self-hosted directly
+  in `index.html` as base64 (downloaded from its official source,
+  [rsms/inter](https://github.com/rsms/inter), SIL Open Font
+  License) — no dependency on Google Fonts or any other external
+  font host. The app didn't actually use Google Fonts before this
+  (it was already on a system font stack), but it wasn't using Inter
+  specifically either; this makes the typography consistent with the
+  chkt.org website, which was updated the same way.
+- Note: this adds ~950KB to `index.html`, entirely from the embedded
+  font. Since the service worker caches static assets, this is a
+  one-time cost on install/update rather than a repeat cost per
+  visit.
+
 ## 1.7.2 - 2026-07-21
 
 ### Fixed
