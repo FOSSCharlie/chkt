@@ -2,6 +2,24 @@
 
 All notable changes to CHKT are documented in this file.
 
+## 1.9.0 - 2026-07-22
+
+### Added
+- Urgency badge/border colors (overdue/today/soon) now update
+  automatically when the calendar day changes, without needing a
+  page refresh. Previously a tab left open across midnight would
+  keep showing yesterday's colors until something else triggered a
+  re-render.
+- Checked every 60 seconds as a backstop, plus a precise check
+  scheduled for the next local midnight so the update happens
+  promptly rather than waiting up to a minute.
+- This only re-renders the task list itself — the "add new task"
+  form is a separate part of the page and is never touched, so
+  someone entering a new task at the moment the date rolls over is
+  completely unaffected. It's also skipped entirely while a task is
+  being edited or a delete confirmation is pending, same as the
+  existing background sync.
+
 ## 1.8.0 - 2026-07-22
 
 ### Changed

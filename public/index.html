@@ -552,6 +552,32 @@ document.addEventListener('visibilitychange', () => {
 window.addEventListener('focus', () => loadTodos({ silent: true }));
 setInterval(() => loadTodos({ silent: true }), 10000);
 
+// ---------- Urgency colors follow the calendar day automatically ----------
+// Overdue/today/soon badge colors are computed from todayStr() at render
+// time, so they'd otherwise only update on the next data change or a manual
+// refresh — meaning a tab left open across midnight would show yesterday's
+// colors until something else happened to trigger a re-render. Instead,
+// re-render (no re-fetch needed) whenever the date actually changes, while
+// leaving any in-progress edit or delete-confirmation alone so this never
+// interrupts someone actively using the app.
+let lastKnownDate = todayStr();
+function checkForDateRollover() {
+    const current = todayStr();
+    if (current !== lastKnownDate) {
+        lastKnownDate = current;
+        if (editingId === null && confirmingDeleteId === null) render();
+    }
+}
+setInterval(checkForDateRollover, 60000);
+// Also schedule one check right at the next local midnight, so the colors
+// update promptly rather than waiting up to a minute for the poll above.
+function scheduleMidnightCheck() {
+    const now = new Date();
+    const nextMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 0, 5);
+    setTimeout(() => { checkForDateRollover(); scheduleMidnightCheck(); }, nextMidnight - now);
+}
+scheduleMidnightCheck();
+
 // A pending "Confirm" delete reverts to the plain red dot if the user
 // clicks anywhere else or presses Escape, so deletion always requires
 // a deliberate second click.
